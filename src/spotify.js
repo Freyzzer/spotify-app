@@ -20,13 +20,15 @@ const getSpotifyToken = async () => {
         }
 
         const data = await response.json();
-        console.log('data',data);
-        console.log("Spotify token:", data.access_token); // Imprime el token en consola
-        return data.access_token; // Retorna solo el token
+        const expires = Date.now() + data.expires_in * 1000;
+        const accessToken = data.access_token;
+        return {accessToken, expires}; // Retorna solo el token
     } catch (error) {
         console.error("Error fetching Spotify token:", error);
         throw error;
     }
 };
+
+
 
 export { getSpotifyToken };

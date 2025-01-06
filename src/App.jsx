@@ -1,52 +1,43 @@
-import { useEffect, useState } from "react";
-import { getSpotifyToken } from "./spotify";
+import {useFetch} from "./lib/useFetch.js";
+import {useSpotifyToken} from "./lib/useSpotifyToken.js";
+
 
 function App() {
-  const [newReleases, setNewReleases] = useState(null);
+  const {token, handleChange} = useSpotifyToken();
+  const {data, loading} = useFetch('https://api.spotify.com/v1/browse/new-releases', token);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = await getSpotifyToken();
+  if (!token) {
+    return (
+        <div className="h-full w-full bg-[#08080A] flex justify-center items-center">
+          <button
+              onClick={handleChange}
+              className="text-amber-100 bg-blue-500 px-4 py-2 rounded"
+          >
+            Login With Spotify
+          </button>
+        </div>
+    );
+  }
 
-        const response = await fetch(
-          'https://api.spotify.com/v1/browse/new-releases',
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch Spotify data");
-        }
-
-        const data = await response.json();
-        setNewReleases(data.albums.items);
-      } catch (error) {
-        console.error("Error fetching Spotify data:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
+  if (loading) return <p>Loading...</p>;
 
   return (
-    <div>
-      <h1>Spotify New Releases</h1>
-      {newReleases ? (
-        <ul>
-          {newReleases.map((album) => (
-            <li key={album.id}>
-              <strong>{album.name}</strong> by {album.artists[0].name}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>Loading...</p>
-      )}
-    </div>
+      <main className="h-full w-full bg-[#08080A]">
+        <div>
+          {data && data.albums && data.albums.items ? (
+              <ul className="text-amber-100">
+                {data.albums.items.map((album) => (
+                    <li key={album.id}>
+                      <strong className="text-amber-100">{album.name}</strong> by{" "}
+                      {album.artists[0].name}
+                    </li>
+                ))}
+              </ul>
+          ) : (
+              <p className="text-amber-100">Cargando lanzamientos...</p>
+          )}
+        </div>
+      </main>
   );
 }
 
